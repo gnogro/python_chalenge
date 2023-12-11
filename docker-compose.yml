@@ -1,0 +1,78 @@
+version: '3.5'
+services:
+  api1: 
+    build: .
+    hostname: api1
+    environment:
+      PORT: 5000:5000
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.90'
+          memory: '1.2GB'
+    command: "python app.py"
+    volumes:
+      - socks:/tmp
+    network_mode: host
+  api2: 
+    build: .
+    hostname: api2
+    environment:
+      PORT: 6000:6000
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.90'
+          memory: '1.2GB'
+    command: "python app2.py"
+    volumes:
+      - socks:/tmp
+    network_mode: host
+  
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - socks:/tmp
+    network_mode: host
+    depends_on:
+      api1:
+        condition: service_started
+      api2:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: '0.5GB'
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: rinha
+      PORT: 5432:5432
+    container_name: db
+    volumes:
+      - ./sql.sql:/docker-entrypoint-initdb.d/sql.sql
+    command: postgres -c shared_buffers=384MB -c max_connections=400 -c log_min_messages=FATAL
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: '2.9GB'
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready --dbname=rinha --username=user"]
+        interval: 2s
+        timeout: 2s
+        retries: 30
+    network_mode: host
+
+volumes:
+  socks:
