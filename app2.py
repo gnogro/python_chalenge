@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import uuid
-
+from sqlalchemy import inspect
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:pass@localhost/postgres'
 db = SQLAlchemy(app)
@@ -21,6 +21,9 @@ class Client(db.Model):
 @app.route('/client', methods=['POST'])
 def create_client():
     try:
+        inspector = inspect(db.engine)
+        if 'client' not in inspector.get_table_names():
+            db.create_all()
         data = request.get_json()
         global list_id, counter
         if counter > 100:

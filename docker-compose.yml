@@ -11,8 +11,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.90'
-          memory: '1.2GB'
+          cpus: '0.40'
+          memory: '1.0GB'
     command: "python app.py"
     volumes:
       - socks:/tmp
@@ -28,8 +28,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.90'
-          memory: '1.2GB'
+          cpus: '0.40'
+          memory: '1.0GB'
     command: "python app2.py"
     volumes:
       - socks:/tmp
@@ -49,26 +49,24 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.20'
-          memory: '0.5GB'
+          cpus: '0.40'
+          memory: '1.0GB'
   db:
     image: postgres:latest
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
-      POSTGRES_DB: rinha
+      POSTGRES_DB: postgres
       PORT: 5432:5432
     container_name: db
-    volumes:
-      - ./sql.sql:/docker-entrypoint-initdb.d/sql.sql
     command: postgres -c shared_buffers=384MB -c max_connections=400 -c log_min_messages=FATAL
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: '2.9GB'
+          cpus: '0.8'
+          memory: '3.0GB'
     healthcheck:
-        test: ["CMD-SHELL", "pg_isready --dbname=rinha --username=user"]
+        test: ["CMD-SHELL", "pg_isready --dbname=postgres --username=user"]
         interval: 2s
         timeout: 2s
         retries: 30
